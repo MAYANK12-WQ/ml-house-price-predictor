@@ -22,7 +22,6 @@ Actual vs. Predicted Prices:
 age](https://github.com/user-attachments/assets/f2b4095f-2983-43bf-a8c4-ae781717ba1c)
 Feature Importance Ranking: 
 ![image](https://github.com/user-attachments/assets/287acc69-40a5-44ea-9017-fd2fa78d5928)
-Chatbot Interaction Example:
 ![image](https://github.com/user-attachments/assets/2681b8b4-14ee-4330-980d-8d6f20f2e56b)
 
 ## 🧠 Use Case
