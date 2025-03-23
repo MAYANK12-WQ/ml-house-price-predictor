@@ -21,7 +21,7 @@ Yes, you read that right – no external hosting, no extra setup, **all in one n
 
 Predict prices and advise renovations for houses in King County, USA using real housing data. It’s a full ML pipeline + chatbot all in one place. Useful for:
 
-- Aspiring Data Scientists (show recruiters your real skill 💼)
+- Aspiring Data Scientists.
 - Real estate analysis
 - AI portfolio boost 🚀
 
@@ -83,7 +83,9 @@ git clone https://github.com/yourusername/house-price-prediction-chatbot.git
 pip install -r requirements.txt
 jupyter notebook
 
-📢 Let’s Connect
+
+
+##📢 Let’s Connect
 📬 Mayank Shekhar (mayanksiingh2@gmai.com)
 🔗 LinkedIn: linkedin.com/in/mayank-shekhar57805
 🌐 AI Agency: Quantum Renaissance
