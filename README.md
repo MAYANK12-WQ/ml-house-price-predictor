@@ -16,6 +16,10 @@ Yes, you read that right – no external hosting, no extra setup, **all in one n
 - 📊 **Feature Importance Visuals** to show what really affects house prices
 
 ---
+OUTPUTS : ![im![image](https://github.com/user-attachments/assets/04b2e60b-91d8-42fc-a069-1cc199517f79)
+age](https://github.com/user-attachments/assets/f2b4095f-2983-43bf-a8c4-ae781717ba1c)
+![image](https://github.com/user-attachments/assets/287acc69-40a5-44ea-9017-fd2fa78d5928)
+![image](https://github.com/user-attachments/assets/2681b8b4-14ee-4330-980d-8d6f20f2e56b)
 
 ## 🧠 Use Case
 
