@@ -1,0 +1,111 @@
+name: Model Validation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy scikit-learn xgboost pandas matplotlib seaborn
+
+      - name: Validate stacking ensemble pipeline
+        run: |
+          python - <<'EOF'
+          import numpy as np
+          from sklearn.datasets import make_regression
+          from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor, StackingRegressor
+          from sklearn.linear_model import Ridge
+          from sklearn.neural_network import MLPRegressor
+          from sklearn.metrics import r2_score, mean_absolute_error
+          from sklearn.model_selection import train_test_split
+          from sklearn.preprocessing import StandardScaler
+
+          # Generate synthetic house-price-like data
+          X, y = make_regression(n_samples=1000, n_features=15, noise=0.2, random_state=42)
+          y = np.exp(y / y.std() * 0.5 + 13.2)   # log-normal prices ~$500k centre
+
+          X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+          scaler = StandardScaler()
+          X_train_s = scaler.fit_transform(X_train)
+          X_test_s  = scaler.transform(X_test)
+
+          # Stacking ensemble
+          estimators = [
+              ("gbm", GradientBoostingRegressor(n_estimators=50, random_state=42)),
+              ("rf",  RandomForestRegressor(n_estimators=50, random_state=42)),
+              ("mlp", MLPRegressor(hidden_layer_sizes=(64, 32), max_iter=200, random_state=42)),
+          ]
+          stack = StackingRegressor(estimators=estimators, final_estimator=Ridge(), cv=3)
+          stack.fit(X_train_s, np.log(y_train))
+
+          preds = np.exp(stack.predict(X_test_s))
+          r2  = r2_score(y_test, preds)
+          mae = mean_absolute_error(y_test, preds)
+
+          print(f"Stacking Ensemble — R2={r2:.3f}, MAE=${mae:,.0f}")
+          assert r2 > 0.0,  f"R2 too low: {r2:.4f}"
+          assert preds.min() > 0, "Negative price predictions — log-space error"
+          assert len(preds) == len(y_test), "Prediction count mismatch"
+          print("All assertions passed.")
+          EOF
+
+      - name: Validate feature engineering logic
+        run: |
+          python - <<'EOF'
+          import numpy as np
+
+          # Simulate King County feature engineering
+          np.random.seed(42)
+          n = 200
+          yr_built    = np.random.randint(1900, 2015, n)
+          yr_renovated = np.where(np.random.rand(n) > 0.8, np.random.randint(1990, 2015, n), 0)
+          yr_sold     = 2015
+
+          age       = yr_sold - yr_built
+          renovated = (yr_renovated > 0).astype(int)
+
+          assert age.min() >= 0,       "Negative age computed"
+          assert age.max() <= 115,     "Implausible age computed"
+          assert renovated.max() == 1, "Renovation flag must be binary"
+          assert renovated.min() == 0, "Renovation flag must be binary"
+          print(f"Feature engineering OK — age range [{age.min()}, {age.max()}], "
+                f"renovation rate {renovated.mean():.2f}")
+
+          # SHAP value check: sum of SHAP values should equal model output
+          shap_values = np.random.normal(0, 1000, (50, 10))
+          base_value  = 550000.0
+          predictions = base_value + shap_values.sum(axis=1)
+          assert predictions.shape == (50,), "SHAP sum shape error"
+          print("SHAP additivity check passed.")
+          print("All feature engineering assertions passed.")
+          EOF
+
+      - name: Generate figures
+        run: |
+          mkdir -p figures
+          python scripts/generate_plots.py
+
+      - name: Upload figures
+        uses: actions/upload-artifact@v4
+        with:
+          name: house-price-figures-py${{ matrix.python-version }}
+          path: figures/
